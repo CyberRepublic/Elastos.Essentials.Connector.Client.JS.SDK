@@ -295,7 +295,7 @@ export class DID {
                 let request = new HiveBackupCredentialRequest(sourceHiveNodeDID, targetHiveNodeDID, targetNodeURL);
                 let response = <HiveBackupCredentialResponse>await walletConnectManager.sendCustomRequest(request.getPayload());
 
-                if (!response || !response.result) {
+                if (!response || !response.result || !response.result.credential) {
                     console.warn("Missing result data. The operation was maybe cancelled.", response);
                     resolve(null);
                     return;
