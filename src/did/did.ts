@@ -1,5 +1,10 @@
 import { DIDURL, JSONObject, VerifiableCredential, VerifiablePresentation } from "@elastosfoundation/did-js-sdk";
 import { DID as SDKDID } from "@elastosfoundation/elastos-connectivity-sdk-js";
+import { ImportedCredential } from "@elastosfoundation/elastos-connectivity-sdk-js/typings/did";
+import { IntentEntity } from "../intent/intent";
+import { IntentType } from "../intent/intent-type";
+import { processIntentResponse, registerIntentResponseProcessor } from "../response-processor";
+import { getSafeApplicationDID } from "../utils";
 import { walletConnectManager } from "../walletconnect";
 import { AppIDCredentialRequest } from "./appidcredentialrequest";
 import { DeleteCredentialsRequest } from "./deletecredentialsrequest";
@@ -14,6 +19,11 @@ import { SignDataRequest } from "./signdatarequest";
 import { UpdateHiveVaultAddressRequest } from "./updatehivevaultaddressrequest";
 
 export class DID {
+  static registerResponseProcessors() {
+      registerIntentResponseProcessor(IntentType.REQUEST_CREDENTIALS, DID.processRequestCredentialsResponse);
+      registerIntentResponseProcessor(IntentType.IMPORT_CREDENTIALS, DID.processImportCredentialsResponse);
+  }
+
     static getCredentials(query: any): Promise<VerifiablePresentation> {
         return new Promise(async (resolve, reject) => {
             walletConnectManager.ensureConnectedToEssentials(async (didPhysicalConnection) => {
@@ -63,6 +73,53 @@ export class DID {
                 reject(e);
             });
         });
+    }
+
+    static async requestCredentialsV2(requestId: string, disclosureRequest: SDKDID.CredentialDisclosureRequest): Promise<void> {
+        return new Promise((resolve, reject) => {
+          walletConnectManager.ensureConnectedToEssentials(async (didPhysicalConnection) => {
+              walletConnectManager.prepareSigningMethods(didPhysicalConnection);
+
+              // Don't wait processRequestCredentials
+              void this.processRequestCredentials(requestId, disclosureRequest);
+              resolve(null);
+          }, () => {
+              resolve(null);
+          }).catch(e => {
+              reject(e);
+          });
+      });
+    }
+
+    static async processRequestCredentials(requestId: string, disclosureRequest: SDKDID.CredentialDisclosureRequest) {
+      let request = new RequestCredentialsRequest(disclosureRequest);
+
+      const intentEntity: IntentEntity = {
+        id: requestId,
+        type : IntentType.REQUEST_CREDENTIALS,
+        requestPayload: {
+          caller: getSafeApplicationDID(),
+          requestId: requestId
+        },
+        responsePayload: null
+      }
+
+      let response: any = await walletConnectManager.sendCustomRequest(request.getPayload());
+      if (!response || !response.result || !response.result.presentation) {
+          console.warn("Missing presentation. The operation was maybe cancelled.", response);
+      } else {
+        intentEntity.responsePayload = response.result.presentation
+      }
+
+
+      processIntentResponse(intentEntity);
+    }
+
+    static async processRequestCredentialsResponse(intent: IntentEntity): Promise<VerifiablePresentation> {
+        if (!intent.responsePayload) return null;
+
+        const presentation = VerifiablePresentation.parse(intent.responsePayload);
+        return presentation;
     }
 
     static async issueCredential(
@@ -125,6 +182,56 @@ export class DID {
                 reject(e);
             });
         });
+    }
+
+    static async importCredentialsV2(requestId: string, credentials: VerifiableCredential[], options?: SDKDID.ImportCredentialOptions): Promise<void> {
+      return new Promise((resolve, reject) => {
+        walletConnectManager.ensureConnectedToEssentials(async (didPhysicalConnection) => {
+            walletConnectManager.prepareSigningMethods(didPhysicalConnection);
+
+            void this.processImportCredentials(requestId, credentials, options)
+            resolve(null);
+        }, () => {
+            resolve(null);
+        }).catch(e => {
+            reject(e);
+        });
+    });
+    }
+
+    static async processImportCredentials(requestId: string, credentials: VerifiableCredential[], options?: SDKDID.ImportCredentialOptions) {
+        let request = new ImportCredentialsRequest(credentials, options);
+        let response: any = await walletConnectManager.sendCustomRequest(request.getPayload());
+
+        const intentEntity: IntentEntity = {
+            id: requestId,
+            type : IntentType.IMPORT_CREDENTIALS,
+            requestPayload: {
+              caller: getSafeApplicationDID(),
+              requestId: requestId
+            },
+            responsePayload: null
+        }
+
+        if (!response || !response.result || !response.result.importedcredentials || !(response.result.importedcredentials instanceof Array)) {
+            console.warn("Missing result data. The operation was maybe cancelled.", response);
+        } else {
+            intentEntity.responsePayload = response.result.importedcredentials
+        }
+
+        processIntentResponse(intentEntity);
+    }
+
+    static async processImportCredentialsResponse(intent: IntentEntity): Promise<ImportedCredential[]> {
+        if (!intent.responsePayload) return null;
+
+        let importedCredentials: ImportedCredential[];
+        importedCredentials = (intent.responsePayload as string[]).map(credentialUrl => {
+            return {
+                id: DIDURL.from(credentialUrl)
+            }
+        });
+        return importedCredentials;
     }
 
     static async deleteCredentials(credentialIds: string[], options?: SDKDID.DeleteCredentialOptions): Promise<string[]> {

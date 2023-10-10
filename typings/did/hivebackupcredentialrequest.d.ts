@@ -6,7 +6,7 @@ export declare class HiveBackupCredentialRequest implements ISerializableRequest
     constructor(sourceHiveNodeDID: string, targetHiveNodeDID: string, targetNodeURL: string);
     getPayload(): string;
 }
-export declare type HiveBackupCredentialResponse = {
+export type HiveBackupCredentialResponse = {
     result: {
         credential?: string;
     };

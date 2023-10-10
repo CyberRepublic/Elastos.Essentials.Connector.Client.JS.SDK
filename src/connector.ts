@@ -3,6 +3,7 @@ import { DID, Interfaces, Wallet } from "@elastosfoundation/elastos-connectivity
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import type { provider } from "web3-core";
 import { DID as ConnDID } from "./did/did";
+import { setResponseHandler } from "./response-processor";
 import { UX } from "./ux/ux";
 import { Wallet as ConnWallet } from "./wallet/wallet";
 import { walletConnectManager } from "./walletconnect";
@@ -25,6 +26,8 @@ export class EssentialsConnector implements Interfaces.Connectors.IConnector {
     constructor(options?: ConnectorOptions) {
         if (options && options.customRpcUrls)
             walletConnectManager.setCustomRpcUrls(options.customRpcUrls);
+
+        this.registerResponseProcessors();
     }
 
     async getDisplayName(): Promise<string> {
@@ -33,6 +36,15 @@ export class EssentialsConnector implements Interfaces.Connectors.IConnector {
 
     getWeb3Provider(): provider {
         return walletConnectManager.getWalletConnectProvider() as any;
+    }
+
+    private registerResponseProcessors() {
+        ConnDID.registerResponseProcessors();
+    }
+
+    registerResponseHandler(handler: Interfaces.Connectors.ConnectorResponseHandler) {
+        console.log("Registered response handler on the Essential connector");
+        setResponseHandler(handler);
     }
 
     /**
@@ -75,12 +87,20 @@ export class EssentialsConnector implements Interfaces.Connectors.IConnector {
         return ConnDID.requestCredentials(request);
     }
 
+    requestCredentialsV2(requestId: string, request: DID.CredentialDisclosureRequest): Promise<void> {
+        return ConnDID.requestCredentialsV2(requestId, request);
+    }
+
     issueCredential(holder: string, types: string[], subject: JSONObject, identifier?: string, expirationDate?: string): Promise<VerifiableCredential> {
         return ConnDID.issueCredential(holder, types, subject, identifier, expirationDate);
     }
 
     importCredentials(credentials: VerifiableCredential[], options?: DID.ImportCredentialOptions): Promise<DID.ImportedCredential[]> {
         return ConnDID.importCredentials(credentials, options);
+    }
+
+    importCredentialsV2(requestId: string, credentials: VerifiableCredential[], options?: DID.ImportCredentialOptions): Promise<void> {
+        return ConnDID.importCredentialsV2(requestId, credentials, options);
     }
 
     deleteCredentials(credentialIds: string[], options?: DID.DeleteCredentialOptions): Promise<string[]> {

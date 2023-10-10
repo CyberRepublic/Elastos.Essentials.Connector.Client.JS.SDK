@@ -1,6 +1,6 @@
 {
   "name": "@elastosfoundation/essentials-connector-client-browser",
-  "version": "1.0.43",
+  "version": "1.0.44",
   "description": "Elastos Essentials Web Connector for the Elastos Connectivity SDK.",
   "main": "dist/index.js",
   "module": "dist.esm/index.js",
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/elastos/Elastos.Essentials.Connector.Client.JS.SDK",
   "dependencies": {
-    "@elastosfoundation/did-js-sdk": "^2.2.7",
+    "@elastosfoundation/did-js-sdk": "^2.3.1",
     "@walletconnect/client": "^1.7.0",
     "@walletconnect/utils": "^1.7.0",
     "@walletconnect/web3-provider": "^1.7.0",
@@ -40,7 +40,7 @@
     "web3-core": "^1.6.1"
   },
   "devDependencies": {
-    "@elastosfoundation/elastos-connectivity-sdk-js": "^1.0.18",
+    "@elastosfoundation/elastos-connectivity-sdk-js": "^2.0.7-next",
     "@rollup/plugin-commonjs": "^17.1.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^11.2.0",

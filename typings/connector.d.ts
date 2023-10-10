@@ -2,7 +2,7 @@ import { JSONObject, VerifiableCredential, VerifiablePresentation } from "@elast
 import { DID, Interfaces, Wallet } from "@elastosfoundation/elastos-connectivity-sdk-js";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import type { provider } from "web3-core";
-export declare type ConnectorOptions = {
+export type ConnectorOptions = {
     /**
      * List of custom RPC chain ID -> URL that the app supports.
      * This replaces or adds to the default rpc urls already provided by the connector by default.
@@ -20,6 +20,8 @@ export declare class EssentialsConnector implements Interfaces.Connectors.IConne
     constructor(options?: ConnectorOptions);
     getDisplayName(): Promise<string>;
     getWeb3Provider(): provider;
+    private registerResponseProcessors;
+    registerResponseHandler(handler: Interfaces.Connectors.ConnectorResponseHandler): void;
     /**
      * Tells whether a wallet connect session exists on disk or not, not matter if it's connected
      * or not.
@@ -42,8 +44,10 @@ export declare class EssentialsConnector implements Interfaces.Connectors.IConne
      */
     getCredentials(query: any): Promise<any>;
     requestCredentials(request: DID.CredentialDisclosureRequest): Promise<VerifiablePresentation>;
+    requestCredentialsV2(requestId: string, request: DID.CredentialDisclosureRequest): Promise<void>;
     issueCredential(holder: string, types: string[], subject: JSONObject, identifier?: string, expirationDate?: string): Promise<VerifiableCredential>;
     importCredentials(credentials: VerifiableCredential[], options?: DID.ImportCredentialOptions): Promise<DID.ImportedCredential[]>;
+    importCredentialsV2(requestId: string, credentials: VerifiableCredential[], options?: DID.ImportCredentialOptions): Promise<void>;
     deleteCredentials(credentialIds: string[], options?: DID.DeleteCredentialOptions): Promise<string[]>;
     signData(data: string, jwtExtra?: any, signatureFieldName?: string): Promise<DID.SignedData>;
     requestPublish(): Promise<string>;
