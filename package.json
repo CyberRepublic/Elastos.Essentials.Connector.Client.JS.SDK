@@ -1,6 +1,6 @@
 {
   "name": "@elastosfoundation/essentials-connector-client-browser",
-  "version": "1.0.44",
+  "version": "1.0.45",
   "description": "Elastos Essentials Web Connector for the Elastos Connectivity SDK.",
   "main": "dist/index.js",
   "module": "dist.esm/index.js",

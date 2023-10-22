@@ -84,6 +84,7 @@ export class DID {
               void this.processRequestCredentials(requestId, disclosureRequest);
               resolve(null);
           }, () => {
+              void this.processCancleIntentResponse(requestId, IntentType.REQUEST_CREDENTIALS);
               resolve(null);
           }).catch(e => {
               reject(e);
@@ -110,7 +111,6 @@ export class DID {
       } else {
         intentEntity.responsePayload = response.result.presentation
       }
-
 
       processIntentResponse(intentEntity);
     }
@@ -192,6 +192,7 @@ export class DID {
             void this.processImportCredentials(requestId, credentials, options)
             resolve(null);
         }, () => {
+            void this.processCancleIntentResponse(requestId, IntentType.IMPORT_CREDENTIALS);
             resolve(null);
         }).catch(e => {
             reject(e);
@@ -418,5 +419,19 @@ export class DID {
                 reject(e);
             });
         });
+    }
+
+    static processCancleIntentResponse(requestId: string, type: IntentType) {
+      console.log('processCancleIntentResponse type', type)
+      const intentEntity: IntentEntity = {
+        id: requestId,
+        type : type,
+        requestPayload: {
+          caller: getSafeApplicationDID(),
+          requestId: requestId
+        },
+        responsePayload: null
+      }
+      processIntentResponse(intentEntity);
     }
 }

@@ -2,6 +2,7 @@ import { JSONObject, VerifiableCredential, VerifiablePresentation } from "@elast
 import { DID as SDKDID } from "@elastosfoundation/elastos-connectivity-sdk-js";
 import { ImportedCredential } from "@elastosfoundation/elastos-connectivity-sdk-js/typings/did";
 import { IntentEntity } from "../intent/intent";
+import { IntentType } from "../intent/intent-type";
 export declare class DID {
     static registerResponseProcessors(): void;
     static getCredentials(query: any): Promise<VerifiablePresentation>;
@@ -21,4 +22,5 @@ export declare class DID {
     static importCredentialContext(serviceName: string, contextCredential: VerifiableCredential): Promise<SDKDID.ImportedCredential>;
     static generateAppIDCredential(appInstanceDID: string, appDID: string): Promise<any>;
     static generateHiveBackupCredential?(sourceHiveNodeDID: string, targetHiveNodeDID: string, targetNodeURL: string): Promise<VerifiableCredential>;
+    static processCancleIntentResponse(requestId: string, type: IntentType): void;
 }
